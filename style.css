@@ -262,6 +262,7 @@ footer {
     max-width: var(--content-width);
     margin: auto;
     padding: 24px 32px 50px;
+    border-top: 1px solid rgba(138, 91, 61, 0.12);
     color: var(--muted);
     font-size: 0.85rem;
 }
@@ -316,3 +317,4 @@ footer {
         break-inside: avoid;
     }
 }
+
