@@ -262,7 +262,8 @@ footer {
     max-width: var(--content-width);
     margin: auto;
     padding: 24px 32px 50px;
-    border-top: 1px solid rgba(138, 91, 61, 0.12);
+    border-top: 1px solid;
+    border-image: linear-gradient(90deg, var(--accent-soft), var(--border), transparent) 1;
     color: var(--muted);
     font-size: 0.85rem;
 }
@@ -317,4 +318,5 @@ footer {
         break-inside: avoid;
     }
 }
+
 
