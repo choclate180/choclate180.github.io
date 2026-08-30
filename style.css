@@ -7,6 +7,9 @@
     --border: #dfd3c5;
     --accent: #8a5b3d;
     --accent-soft: #eadbca;
+    --terracotta: #b66d4d;
+    --caramel: #c58b55;
+    --espresso: #4b3325;
 
     --content-width: 1080px;
     --text-width: 720px;
@@ -26,6 +29,7 @@ body {
     margin: 0;
     background:
         radial-gradient(circle at 10% 0%, rgba(196, 158, 116, 0.13), transparent 34rem),
+        radial-gradient(circle at 92% 18%, rgba(197, 139, 85, 0.1), transparent 28rem),
         var(--bg);
     color: var(--text);
     font-family:
@@ -76,7 +80,7 @@ nav a {
 }
 
 .nav-links a:hover {
-    color: var(--text);
+    color: var(--terracotta);
 }
 
 /* General layout */
@@ -137,6 +141,18 @@ p {
     background: rgba(255, 250, 242, 0.65);
     border: 1px solid var(--border);
     border-radius: 999px;
+}
+
+.meta span:first-child {
+    color: #8d4f36;
+    background: rgba(182, 109, 77, 0.08);
+    border-color: rgba(182, 109, 77, 0.22);
+}
+
+.meta span:last-child {
+    color: var(--espresso);
+    background: rgba(197, 139, 85, 0.09);
+    border-color: rgba(197, 139, 85, 0.24);
 }
 
 /* Dividers */
@@ -204,6 +220,8 @@ img {
 }
 
 .project-card {
+    position: relative;
+    overflow: hidden;
     display: block;
     padding: 26px;
     min-height: 170px;
@@ -218,6 +236,15 @@ img {
         border-color 0.2s ease,
         box-shadow 0.2s ease,
         background 0.2s ease;
+}
+
+.project-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--terracotta), var(--caramel) 55%, var(--accent));
+    opacity: 0.8;
 }
 
 .project-card:hover {
