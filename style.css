@@ -88,7 +88,7 @@ nav a {
 main {
     max-width: var(--content-width);
     margin: auto;
-    padding: 70px 32px 120px;
+    padding: 70px 32px 70px;
 }
 
 /* Typography */
@@ -279,7 +279,6 @@ footer {
     max-width: var(--content-width);
     margin: auto;
     padding: 24px 32px 50px;
-    border-top: 1px solid rgba(138, 91, 61, 0.12);
     color: var(--muted);
     font-size: 0.85rem;
 }
@@ -292,7 +291,7 @@ footer {
     }
 
     main {
-        padding: 45px 20px 80px;
+        padding: 45px 20px 55px;
     }
 
     .image-grid,
