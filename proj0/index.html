@@ -3,8 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CS 180 Project 0: an exploration of perspective, focal length, compression, and the dolly zoom.">
+    <title>Project 0 | Becoming Friends with Your Camera</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav aria-label="Primary navigation">
+    <a class="nav-title" href="../">CS 180</a>
+    <div class="nav-links"><a href="../">Projects</a></div>
+</nav>
 
-    <title>Project 0 — CS 180</title>
+<main class="project-page">
+    <header class="project-hero">
+        <span class="project-kicker">Project 00 · Fall 2026</span>
+        <h1>Becoming Friends<br>with Your Camera</h1>
+        <p class="subtitle">A short study of how camera distance and focal length change the way a scene feels, from portraits and architecture to the dolly zoom.</p>
+    </header>
 
+    <div class="divider"></div>
+
+    <section class="project-section" id="selfie">
+        <div class="section-heading">
+            <span class="section-number">01</span>
+            <h2>Selfie: The Wrong Way vs. The Right Way</h2>
+        </div>
+        <p class="section-intro">The tighter, close-range portrait exaggerates the features nearest to the lens. Pulling the camera farther away gives the face a more natural proportion and a flatter, more flattering perspective.</p>
+        <div class="image-grid portrait-grid">
+            <figure>
+                <div class="image-frame"><img src="/proj0/media/IMG_9908.jpg" alt="A tightly framed close-up portrait demonstrating perspective distortion" loading="eager"><span class="image-label">Close-up</span></div>
+                <figcaption><strong>IMG_9908.</strong> Zoomed in and tightly framed. The closer viewpoint makes the center of the face appear more prominent.</figcaption>
+            </figure>
+            <figure>
+                <div class="image-frame"><img src="/proj0/media/IMG_9907.jpg" alt="A portrait photographed from farther away with more natural proportions" loading="eager"><span class="image-label">Pulled back</span></div>
+                <figcaption><strong>IMG_9907.</strong> Zoomed out and photographed from farther back. The face reads more naturally.</figcaption>
+            </figure>
+        </div>
+        <aside class="observation"><span>What changed?</span><p>Perspective depends on camera position. Increasing the camera-to-subject distance reduces the relative depth differences across the face, while zoom controls the final framing.</p></aside>
+    </section>
+
+    <section class="project-section" id="architecture">
+        <div class="section-heading">
+            <span class="section-number">02</span>
+            <h2>Architectural Perspective Compression</h2>
+        </div>
+        <p class="section-intro">The same building looks surprisingly different as the camera moves. From farther away at 2× zoom, the front and side planes feel closer together; at 1× from nearby, the receding side becomes much more pronounced.</p>
+        <div class="image-grid architecture-grid">
+            <figure>
+                <div class="image-frame"><img src="/proj0/media/IMG_9883.jpg" alt="A Victorian building photographed from farther away at two-times zoom" loading="lazy"><span class="image-label">2× zoom</span></div>
+                <figcaption><strong>IMG_9883.</strong> Farther away at 2×. The building appears flatter and its depth is compressed.</figcaption>
+            </figure>
+            <figure>
+                <div class="image-frame"><img src="/proj0/media/IMG_9885.jpg" alt="The same Victorian building photographed nearby at one-times zoom" loading="lazy"><span class="image-label">1× zoom</span></div>
+                <figcaption><strong>IMG_9885.</strong> Nearby at 1×. The front corner feels stronger and the side wall recedes more dramatically.</figcaption>
+            </figure>
+        </div>
+        <aside class="observation"><span>What changed?</span><p>The zoom did not create the compression by itself. Stepping back changed the perspective; the longer focal length simply brought the building back to a similar size in the frame.</p></aside>
+    </section>
+
+    <section class="project-section" id="dolly-zoom">
+        <div class="section-heading">
+            <span class="section-number">03</span>
+            <h2>The Dolly Zoom</h2>
+        </div>
+        <p class="section-intro">For the final experiment, I photographed a Mario figure at eight zoom levels while changing the camera distance to keep Mario roughly the same size. The subject stays anchored while the background seems to stretch and collapse around him.</p>
+        <figure class="figure dolly-figure">
+            <div class="image-frame wide-frame"><img src="/proj0/media/ezgif.com-gif-maker.gif" alt="Animated dolly zoom sequence of a Mario figure across eight zoom levels" loading="lazy"><span class="image-label">8 frames</span></div>
+            <figcaption><strong>Dolly zoom sequence.</strong> Eight focal lengths, with distance adjusted at each step to preserve the subject’s scale.</figcaption>
+        </figure>
+    </section>
+
+</main>
+
+<footer class="site-footer"><span>Vishwas Charan · Fall 2026 UC Berkeley</span></footer>
+</body>
 </html>
-
