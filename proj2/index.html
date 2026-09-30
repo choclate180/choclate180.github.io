@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CS 180 Project 2: filters, hybrid images, and multiresolution blending.">
+    <title>Project 2 | Fun with Filters and Frequencies</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav aria-label="Primary navigation">
+    <a class="nav-title" href="../">CS 180</a>
+    <div class="nav-links"><a href="../">Projects</a></div>
+</nav>
+
+<main class="project-page proj2-page">
+    <header class="project-hero">
+        <span class="project-kicker">Project 02 · Fall 2026</span>
+        <h1>Fun with Filters<br>and Frequencies</h1>
+        <p class="subtitle">Finding edges, sharpening photographs, making hybrid images, and blending at multiple scales.</p>
+        <div class="project-jump-links" aria-label="Project sections">
+            <a href="#overview">Overview</a>
+            <a href="#convolution">Convolution</a>
+            <a href="#edges">Edges</a>
+            <a href="#sharpening">Sharpening</a>
+            <a href="#hybrids">Hybrids</a>
+            <a href="#stacks">Stacks</a>
+            <a href="#blending">Blending</a>
+        </div>
+    </header>
+
+    <div class="divider"></div>
+
+    <section class="project-section" id="overview">
+        <div class="section-heading"><span class="section-number">01</span><h2>Overview</h2></div>
+        <p class="section-intro">I started with a very literal question: what happens when a tiny filter is moved over every pixel? By the end I was using those same filters to pull out edges, make a photo look sharper, and combine two scenes. The most surprising part was how often a result that looked wrong made more sense once I looked at which frequencies were being kept.</p>
+    </section>
+
+    <section class="project-section" id="convolution">
+        <div class="section-heading"><span class="section-number">02</span><h2>Convolution from Scratch</h2></div>
+        <p class="section-intro">I wrote convolution twice using NumPy, first with four nested loops and then with two. Both versions flip the kernel and add zero padding so the output stays the same size as the input.</p>
+
+        <div class="prose-block">
+            <h3>Four loops, two loops, and SciPy</h3>
+            <p>In the first version, the inner two loops multiply each pixel in a neighborhood by its flipped kernel weight. The second version hands that neighborhood multiplication to NumPy. The four-loop version was slowest, the two-loop version faster, and SciPy fastest. All three matched for the <math><mn>9</mn><mo>×</mo><mn>9</mn></math> box filter.</p>
+            <p>I kept zero padding in the SciPy comparison too. Otherwise, a different boundary rule could make two correct implementations disagree at the image edges. The darker outline in the blurred photos is the visible cost of treating pixels beyond the frame as zero.</p>
+        </div>
+
+
+        <p class="p2-note">Here, the padded image supplies a neighborhood around each output pixel, and the flipped kernel supplies its weights, shown by the loops in the code below...</p>
+
+        <div class="p2-code-group">
+            <div class="p2-code-example">
+                <h3>Four-loop version</h3>
+                <pre><code>def convolution_four_loops(image, kernel):
+    height, width = image.shape
+    result = np.zeros((height, width))
+    kheight, kwidth = kernel.shape
+
+    padded = np.pad(image, ((kheight // 2, kheight // 2), (kwidth // 2, kwidth // 2)))
+    flipped = np.flip(kernel)
+
+    for y in range(height):
+        for x in range(width):
+            tot = 0
+
+            for ky in range(kheight):
+                for kx in range(kwidth):
+                    pix = padded[y + ky, x + kx]
+                    weight = flipped[ky, kx]
+                    tot += weight * pix
+
+            result[y, x] = tot
+
+    return result</code></pre>
+            </div>
+            <div class="p2-code-example">
+                <h3>Two-loop version</h3>
+                <pre><code>def convolution_two_loops(image, kernel):
+    height, width = image.shape
+    kheight, kwidth = kernel.shape
+
+    padded = np.pad(image, ((kheight // 2, kheight // 2), (kwidth // 2, kwidth // 2)))
+    flipped = np.flip(kernel)
+    result = np.zeros((height, width))
+
+    for y in range(height):
+        for x in range(width):
+            area = padded[y:y + kheight, x:x + kwidth]
+            result[y, x] = np.sum(area * flipped)
+
+    return result</code></pre>
+            </div>
+        </div>
+
+        <div class="p2-grid p2-grid-four">
+            <figure><div class="image-frame"><img src="media/selfie_gray.jpg" alt="Grayscale selfie used for convolution" loading="lazy"></div><figcaption><strong>Input.</strong> Grayscale selfie.</figcaption></figure>
+            <figure><div class="image-frame p2-box-crop"><img src="media/box_four.jpg" alt="Selfie blurred with four-loop convolution" loading="lazy"></div><figcaption><strong>Four loops.</strong> <math><mn>9</mn><mo>×</mo><mn>9</mn></math> box filter.</figcaption></figure>
+            <figure><div class="image-frame p2-box-crop"><img src="media/box_two.jpg" alt="Selfie blurred with two-loop convolution" loading="lazy"></div><figcaption><strong>Two loops.</strong> Same filter and boundary.</figcaption></figure>
+            <figure><div class="image-frame p2-box-crop"><img src="media/box_scipy.jpg" alt="Selfie blurred with SciPy convolution" loading="lazy"></div><figcaption><strong>SciPy.</strong> Matching reference result.</figcaption></figure>
+        </div>
+        <div class="p2-grid p2-grid-two p2-narrow">
+            <figure><div class="image-frame"><img src="media/dx.jpg" alt="Selfie convolved with D x" loading="lazy"></div><figcaption><math><msub><mi>D</mi><mi>x</mi></msub></math> on my selfie. Left-to-right brightness changes.</figcaption></figure>
+            <figure><div class="image-frame"><img src="media/dy.jpg" alt="Selfie convolved with D y" loading="lazy"></div><figcaption><math><msub><mi>D</mi><mi>y</mi></msub></math> on my selfie. Top-to-bottom brightness changes.</figcaption></figure>
+        </div>
+    </section>
+
+    <section class="project-section" id="edges">
+        <div class="section-heading"><span class="section-number">03</span><h2>Edges and Gaussian Smoothing</h2></div>
+        <p class="section-intro">The cameraman image is a useful test because the subject has strong edges, but the grass has lots of noise. I used <math><msub><mi>D</mi><mi>x</mi></msub></math> and <math><msub><mi>D</mi><mi>y</mi></msub></math> to measure horizontal and vertical brightness changes, then combined them before deciding which changes were large enough to count as edges.</p>
+
+        <div class="p2-subsection">
+            <h3>Finite differences</h3>
+            <p>The first row moves from the original photo to its two directional derivatives and then to one gradient-magnitude image. Each gradient pixel combines both directions, so an edge does not disappear just because it is tilted.</p>
+            <div class="formula p2-math">
+                <math display="block" aria-label="Gradient magnitude equals the square root of squared x derivative plus squared y derivative">
+                    <mrow><mi>g</mi><mo>=</mo><msqrt><msup><msub><mi>g</mi><mi>x</mi></msub><mn>2</mn></msup><mo>+</mo><msup><msub><mi>g</mi><mi>y</mi></msub><mn>2</mn></msup></msqrt><mo>,</mo><mspace width="0.5em"/><msub><mi>g</mi><mi>x</mi></msub><mo>=</mo><mi>I</mi><mo>∗</mo><msub><mi>D</mi><mi>x</mi></msub><mo>,</mo><mspace width="0.5em"/><msub><mi>g</mi><mi>y</mi></msub><mo>=</mo><mi>I</mi><mo>∗</mo><msub><mi>D</mi><mi>y</mi></msub></mrow>
+                </math>
+            </div>
+            <div class="p2-grid p2-grid-four">
+                <figure><div class="image-frame"><img src="media/cameraman.png" alt="Original cameraman image" loading="lazy"></div><figcaption>Original cameraman.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/camera_dx.jpg" alt="Cameraman partial derivative in x" loading="lazy"></div><figcaption><math><msub><mi>D</mi><mi>x</mi></msub></math>: horizontal changes.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/camera_dy.jpg" alt="Cameraman partial derivative in y" loading="lazy"></div><figcaption><math><msub><mi>D</mi><mi>y</mi></msub></math>: vertical changes.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/camera_gradient.jpg" alt="Cameraman gradient magnitude" loading="lazy"></div><figcaption>Gradient magnitude.</figcaption></figure>
+            </div>
+            <h4>Turning the gradient into edges</h4>
+            <p>The next three images all start from that same gradient. A pixel is white if its magnitude is above the threshold and black otherwise. At 0.10, the grass and background get busy. At 0.50, parts of the photographer and tripod disappear. I kept 0.20 because it holds onto the main outlines without as much noise.</p>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/camera_edges_10.jpg" alt="Cameraman edges at threshold 0.10" loading="lazy"></div><figcaption>Threshold 0.10</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/camera_edges_20.jpg" alt="Cameraman edges at threshold 0.20" loading="lazy"></div><figcaption><strong>Threshold 0.20</strong>, my final choice.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/camera_edges_50.jpg" alt="Cameraman edges at threshold 0.50" loading="lazy"></div><figcaption>Threshold 0.50</figcaption></figure>
+            </div>
+        </div>
+
+        <div class="p2-subsection" id="dog">
+            <h3>Derivative of Gaussian</h3>
+            <p>The unsmoothed edge map still picks up a lot of texture. I made an <math><mn>11</mn><mo>×</mo><mn>11</mn></math> Gaussian from a 1D kernel and an outer product. Blurring before differentiating suppresses smaller changes, but it can also thicken an edge. I then combined the Gaussian with each derivative filter, so the blur and derivative could be applied with one convolution. I verified that the two approaches agree in the interior, where their boundary handling does not interfere.</p>
+            <div class="formula p2-math">
+                <math display="block" aria-label="Blurring then applying D x equals applying the derivative of Gaussian filter to the original image in the interior">
+                    <mrow><mo>(</mo><mi>I</mi><mo>∗</mo><mi>G</mi><mo>)</mo><mo>∗</mo><msub><mi>D</mi><mi>x</mi></msub><mo>=</mo><mi>I</mi><mo>∗</mo><mo>(</mo><mi>G</mi><mo>∗</mo><msub><mi>D</mi><mi>x</mi></msub><mo>)</mo></mrow>
+                </math>
+            </div>
+            <h4>The filters</h4>
+            <p>The two DoG images below are filters, not processed cameraman photos. One responds to horizontal changes, the other to vertical ones.</p>
+            <div class="p2-grid p2-grid-three p2-filter-grid">
+                <figure><div class="image-frame"><img src="media/gaussian.jpg" alt="Gaussian filter visualized as an image" loading="lazy"></div><figcaption>Gaussian filter.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/dog_x.jpg" alt="Derivative of Gaussian filter in x" loading="lazy"></div><figcaption>Gaussian combined with <math><msub><mi>D</mi><mi>x</mi></msub></math>.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/dog_y.jpg" alt="Derivative of Gaussian filter in y" loading="lazy"></div><figcaption>Gaussian combined with <math><msub><mi>D</mi><mi>y</mi></msub></math>.</figcaption></figure>
+            </div>
+            <h4>Applying them to cameraman</h4>
+            <p>Here the left image is only blurred. The middle image blurs first and then takes derivatives; the right image uses the combined DoG filters directly. Their gradient magnitudes look nearly the same.</p>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/camera_blurred.jpg" alt="Gaussian blurred cameraman" loading="lazy"></div><figcaption>Cameraman after Gaussian smoothing.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/blur_gradient.jpg" alt="Gradient magnitude after smoothing and differentiation" loading="lazy"></div><figcaption>Blur first, then compute gradient magnitude.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/dog_gradient.jpg" alt="Gradient magnitude using derivative of Gaussian filters" loading="lazy"></div><figcaption>Gradient magnitude from the DoG filters.</figcaption></figure>
+            </div>
+            <h4>The resulting edge maps</h4>
+            <p>The left image is the original finite-difference result at 0.20. The middle and right images use a 0.10 threshold after smoothing. They lose much of the scattered background noise, which is the improvement I wanted to see.</p>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/camera_edges_20.jpg" alt="Edges from finite differences without smoothing" loading="lazy"></div><figcaption>Finite differences, no smoothing.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/blur_edges.jpg" alt="Edges after Gaussian smoothing" loading="lazy"></div><figcaption>Blurred image, then derivatives.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/dog_edges.jpg" alt="Edges from derivative of Gaussian filters" loading="lazy"></div><figcaption>DoG filters, threshold 0.10.</figcaption></figure>
+            </div>
+        </div>
+    </section>
+
+    <section class="project-section" id="sharpening">
+        <div class="section-heading"><span class="section-number">04</span><h2>Image Sharpening</h2></div>
+        <p class="section-intro">Unsharp masking increases edge contrast by adding back the difference between an image and its Gaussian-blurred version. I applied the same blur to each color channel, then scaled that high-frequency difference before adding it to the original. Shown alone, the difference image is mostly neutral gray with bright and dark traces around edges because its values are centered near zero.</p>
+        <div class="formula p2-math">
+            <math display="block" aria-label="Sharpened image equals original plus alpha times original minus Gaussian-blurred image">
+                <mrow><mi>S</mi><mo>=</mo><mi>I</mi><mo>+</mo><mi>α</mi><mo>(</mo><mi>I</mi><mo>−</mo><mi>G</mi><mo>∗</mo><mi>I</mi><mo>)</mo></mrow>
+            </math>
+        </div>
+        <p class="p2-note">The term in parentheses is the high-frequency part. I also made a single unsharp-mask kernel, <math><mo>(</mo><mn>1</mn><mo>+</mo><mi>α</mi><mo>)</mo><mi>δ</mi><mo>−</mo><mi>α</mi><mi>G</mi></math>, where the impulse kernel leaves the input unchanged. One convolution with that kernel matched the blur-subtract-add calculation before saving.</p>
+
+        <div class="p2-subsection">
+            <h3>Taj Mahal</h3>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/taj_original.jpg" alt="Original Taj Mahal photo" loading="lazy"></div><figcaption>Original.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/taj_blurred.jpg" alt="Blurred Taj Mahal photo" loading="lazy"></div><figcaption>Low frequencies from Gaussian blur.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/taj_high.jpg" alt="High-frequency part of Taj Mahal photo" loading="lazy"></div><figcaption>High frequencies, shifted to middle gray for display.</figcaption></figure>
+            </div>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/taj_sharp_1.jpg" alt="Taj Mahal sharpened with alpha 1" loading="lazy"></div><figcaption>Sharpened, <math><mi>α</mi><mo>=</mo><mn>1</mn></math>.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/taj_sharp_2.jpg" alt="Taj Mahal sharpened with alpha 2" loading="lazy"></div><figcaption>Sharpened, <math><mi>α</mi><mo>=</mo><mn>2</mn></math>.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/taj_sharp_4.jpg" alt="Taj Mahal sharpened with alpha 4" loading="lazy"></div><figcaption>Sharpened, <math><mi>α</mi><mo>=</mo><mn>4</mn></math>.</figcaption></figure>
+            </div>
+            <p class="p2-note">As I increased <math><mi>α</mi></math>, the building edges became more noticeable, but the strongest version felt a little harsh. I liked the middle result better than simply turning the effect all the way up.</p>
+        </div>
+
+        <div class="p2-subsection">
+            <h3>Another blurry image</h3>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/additionalblurry_original.jpg" alt="Additional blurry image before sharpening" loading="lazy"></div><figcaption>Input image.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/additionalblurry_sharp_2.jpg" alt="Additional blurry image sharpened with alpha 2" loading="lazy"></div><figcaption>Sharpened, <math><mi>α</mi><mo>=</mo><mn>2</mn></math>.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/additionalblurry_sharp_4.jpg" alt="Additional blurry image sharpened with alpha 4" loading="lazy"></div><figcaption>Sharpened, <math><mi>α</mi><mo>=</mo><mn>4</mn></math>.</figcaption></figure>
+            </div>
+            <p class="p2-note">One curious effect in this comparison: the stronger building edges make the three frames appear slightly misaligned. They are the same original image in the same position; only the sharpening amount changes.</p>
+        </div>
+
+        <div class="p2-subsection">
+            <h3>Blurred and sharpened again</h3>
+            <p>I tried the reverse experiment on my selfie: start sharp, blur it, and then sharpen the blurred copy. The last image has stronger edges than the middle one, but clearly isn't able to recover all the lost detail as the blur isn't a lossless operation. My hair and the shirt lettering are good examples of this.</p>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/selfie_original_21.jpg" alt="Original sharp selfie" loading="lazy"></div><figcaption>Original.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/selfie_blurred_21.jpg" alt="Blurred selfie" loading="lazy"></div><figcaption>Blurred.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/selfie_restored_21.jpg" alt="Sharpened version of the blurred selfie" loading="lazy"></div><figcaption>Sharpened after blur.</figcaption></figure>
+            </div>
+        </div>
+    </section>
+
+    <section class="project-section" id="hybrids">
+        <div class="section-heading"><span class="section-number">05</span><h2>Hybrid Images</h2></div>
+        <p class="section-intro">A hybrid combines the low spatial frequencies of one image with the high spatial frequencies of another. Close up, the fine detail is easy to resolve. From farther away, that detail becomes less visible and the low-frequency structure takes over. I aligned corresponding points first so the two interpretations occupy roughly the same position and scale.</p>
+        <div class="formula p2-math">
+            <math display="block" aria-label="Hybrid equals blurred first image plus second image minus its blurred version">
+                <mrow><mi>H</mi><mo>=</mo><msub><mi>G</mi><mi>l</mi></msub><mo>∗</mo><mi>A</mi><mo>+</mo><mo>(</mo><mi>B</mi><mo>−</mo><msub><mi>G</mi><mi>h</mi></msub><mo>∗</mo><mi>B</mi><mo>)</mo></mrow>
+            </math>
+        </div>
+        <p class="p2-note">The first term keeps the low frequencies from one aligned image; the subtraction keeps the high frequencies from the other. I used grayscale here and reduced the aligned images to at most 500 pixels on their longest side. Derek and Nutmeg used low-pass <math><mi>σ</mi><mo>=</mo><mn>4</mn></math> and high-pass <math><mi>σ</mi><mo>=</mo><mn>2</mn></math>. My two other pairs used <math><mi>σ</mi><mo>=</mo><mn>2</mn></math> for both filters, mostly deduced by trial and error.</p>
+
+        <div class="p2-subsection">
+            <h3>Derek and Nutmeg</h3>
+            <p>Nutmeg started at an angle, so I rotated the cat photo to bring the eyes closer to Derek's eye line. That helped the two faces share the same space. The displayed hybrid is cropped at the top because the rotation left a black strip and a diagonal boundary there.</p>
+            <div class="p2-grid p2-grid-three p2-portrait-row">
+                <figure><div class="image-frame"><img src="media/DerekPicture.jpg" alt="Original portrait of Derek" loading="lazy"></div><figcaption>Derek, low-frequency source.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/nutmeg.jpg" alt="Original photo of Nutmeg the cat" loading="lazy"></div><figcaption>Nutmeg, high-frequency source.</figcaption></figure>
+                <figure><div class="image-frame p2-derek-crop"><img src="media/derek_nutmeg_hybrid.jpg" alt="Hybrid of Derek and Nutmeg, displayed with the diagonal top boundary cropped out" loading="lazy"></div><figcaption>Hybrid. View up close for Nutmeg, then a few meters away for Derek. Top boundary cropped for display.</figcaption></figure>
+            </div>
+        </div>
+
+        <div class="p2-subsection">
+            <h3>Mountain and wolf</h3>
+            <div class="p2-grid p2-grid-three p2-portrait-row">
+                <figure><div class="image-frame"><img src="media/mountain1.jpg" alt="Original mountain image" loading="lazy"></div><figcaption>Mountain, low-frequency source.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/wolf1.jpg" alt="Original wolf image" loading="lazy"></div><figcaption>Wolf, high-frequency source.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/mountain_wolf_hybrid.jpg" alt="Mountain and wolf hybrid image" loading="lazy"></div><figcaption>Hybrid. View up close for the wolf, then a few meters away for the mountain.</figcaption></figure>
+            </div>
+            <p class="p2-note">At close range, the wolf's facial detail dominates. At a reduced display size, those high-frequency features become less distinct and the mountain's broad outline becomes clearer.</p>
+        </div>
+
+        <div class="p2-subsection">
+            <h3>Moon and grim reaper</h3>
+            <div class="p2-grid p2-grid-three p2-portrait-row">
+                <figure><div class="image-frame"><img src="media/moon2.jpg" alt="Original moon image" loading="lazy"></div><figcaption>Moon, low-frequency source.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/grim2.jpg" alt="Original grim reaper image" loading="lazy"></div><figcaption>Grim reaper, high-frequency source.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_hybrid.jpg" alt="Moon and grim reaper hybrid image" loading="lazy"></div><figcaption>Hybrid. View up close for the grim reaper, then a few meters away for the moon.</figcaption></figure>
+            </div>
+            <p class="p2-note">This is the pair I used for the full process below. The first two images show the aligned, same-sized inputs; the next two show the low- and high-frequency components that were actually added.</p>
+            <div class="p2-grid p2-grid-two p2-narrow">
+                <figure><div class="image-frame"><img src="media/moon_grim_low_input.jpg" alt="Aligned grayscale moon input" loading="lazy"></div><figcaption>Aligned low-frequency input.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_high_input.jpg" alt="Aligned grayscale grim reaper input" loading="lazy"></div><figcaption>Aligned high-frequency input.</figcaption></figure>
+            </div>
+            <div class="p2-grid p2-grid-two p2-narrow">
+                <figure><div class="image-frame"><img src="media/moon_grim_low_filtered.jpg" alt="Low-pass filtered moon" loading="lazy"></div><figcaption>Blurred moon. This keeps its broad shape.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_high_filtered.jpg" alt="High-pass filtered grim reaper" loading="lazy"></div><figcaption>High frequencies from the grim reaper, shifted to middle gray for display.</figcaption></figure>
+            </div>
+            <h4>Fourier analysis</h4>
+            <p>I chose the Gaussian cutoffs by comparing hybrids at close range and at a smaller display size, not by reading a cutoff directly from the Fourier plots. For this pair, a larger low-pass standard deviation erased too much of the moon's outline, so I kept <math><mi>σ</mi><mo>=</mo><mn>2</mn></math> for both filters. The plots then serve as a check: in the centered log-magnitude spectrum, the blurred moon concentrates energy near the center, while the grim reaper's high-pass result suppresses the center and retains frequencies farther out.</p>
+            <div class="p2-grid p2-grid-five p2-fft-grid">
+                <figure><div class="image-frame"><img src="media/moon_grim_fft_low_input.jpg" alt="Fourier log magnitude of aligned moon input" loading="lazy"></div><figcaption>Moon input.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_fft_high_input.jpg" alt="Fourier log magnitude of aligned grim reaper input" loading="lazy"></div><figcaption>Grim input.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_fft_low_filtered.jpg" alt="Fourier log magnitude of low-pass moon" loading="lazy"></div><figcaption>Low-pass moon.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_fft_high_filtered.jpg" alt="Fourier log magnitude of high-pass grim reaper" loading="lazy"></div><figcaption>High-pass grim.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_fft_hybrid.jpg" alt="Fourier log magnitude of final moon and grim hybrid" loading="lazy"></div><figcaption>Hybrid.</figcaption></figure>
+            </div>
+        </div>
+    </section>
+
+    <section class="project-section" id="stacks">
+        <div class="section-heading"><span class="section-number">06</span><h2>Gaussian and Laplacian Stacks</h2></div>
+        <p class="section-intro">The original image is level 0 of the Gaussian stack. Each later level convolves the previous image with a Gaussian of increasing standard deviation, but never downsamples it, so all levels keep the same dimensions. Subtracting adjacent Gaussian levels gives the corresponding Laplacian band: the detail present at one level but removed by the next blur.</p>
+        <div class="formula p2-math">
+            <math display="block" aria-label="Laplacian level k equals Gaussian level k minus Gaussian level k plus one">
+                <mrow><msub><mi>L</mi><mi>k</mi></msub><mo>=</mo><msub><mi>G</mi><mi>k</mi></msub><mo>−</mo><msub><mi>G</mi><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></msub></mrow>
+            </math>
+        </div>
+        <p class="p2-note">The last Laplacian level is the final, heavily blurred Gaussian image. The other levels have positive and negative values, so I shifted them toward middle gray only for display. I kept the signed values for the actual blend.</p>
+
+        <div class="p2-stack-group">
+            <figure class="p2-wide-figure"><div class="p2-stack-levels"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span></div><div class="image-frame"><img src="media/apple_gaussstack.jpg" alt="Five levels of the apple Gaussian stack" loading="lazy"></div><figcaption>Apple Gaussian stack.</figcaption></figure>
+            <figure class="p2-wide-figure"><div class="p2-stack-levels"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span></div><div class="image-frame"><img src="media/apple_laplstack.jpg" alt="Five levels of the apple Laplacian stack" loading="lazy"></div><figcaption>Apple Laplacian stack.</figcaption></figure>
+            <figure class="p2-wide-figure"><div class="p2-stack-levels"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span></div><div class="image-frame"><img src="media/orange_gaussstack.jpg" alt="Five levels of the orange Gaussian stack" loading="lazy"></div><figcaption>Orange Gaussian stack.</figcaption></figure>
+            <figure class="p2-wide-figure"><div class="p2-stack-levels"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span></div><div class="image-frame"><img src="media/orange_laplstack.jpg" alt="Five levels of the orange Laplacian stack" loading="lazy"></div><figcaption>Orange Laplacian stack.</figcaption></figure>
+        </div>
+
+        <div class="p2-subsection">
+            <h3>Oraple and the 12-panel breakdown</h3>
+            <p>I started with a sharp left-right mask: apple on one side, orange on the other. Giving that mask its own Gaussian stack changes the seam with the frequency level instead of using one hard boundary everywhere. The first three rows show the weighted pieces at levels 0, 2, and 4. The last row adds up the apple pieces, adds up the orange pieces, and finally combines them.</p>
+            <figure class="p2-wide-figure p2-reference-figure"><div class="image-frame"><img src="media/oraple_figure_342.jpg" alt="Twelve labeled panels showing apple and orange contributions at three stack levels and the final oraple" loading="lazy"></div><figcaption>Recreation of Figure 3.42, panels (a) through (l).</figcaption></figure>
+        </div>
+    </section>
+
+    <section class="project-section" id="blending">
+        <div class="section-heading"><span class="section-number">07</span><h2>Multiresolution Blending</h2></div>
+        <p class="section-intro">I blended the Laplacian bands separately rather than joining the original images with a single sharp seam. At each of the five levels, a Gaussian-blurred mask weights the corresponding band from each source. I summed those weighted bands and repeated the operation for each color channel. The direct-cut versions provide a useful comparison for judging the seam.</p>
+        <div class="formula p2-math">
+            <math display="block" aria-label="Blend equals the sum over levels of mask times first Laplacian level plus one minus mask times second Laplacian level">
+                <mrow><mi>B</mi><mo>=</mo><msub><mo>∑</mo><mi>k</mi></msub><mo>[</mo><msub><mi>M</mi><mi>k</mi></msub><msubsup><mi>L</mi><mi>k</mi><mi>A</mi></msubsup><mo>+</mo><mo>(</mo><mn>1</mn><mo>−</mo><msub><mi>M</mi><mi>k</mi></msub><mo>)</mo><msubsup><mi>L</mi><mi>k</mi><mi>B</mi></msubsup><mo>]</mo></mrow>
+            </math>
+        </div>
+        <p class="p2-note">In the equation, <math><msub><mi>L</mi><mi>k</mi></msub></math> is a Laplacian level and <math><msub><mi>M</mi><mi>k</mi></msub></math> is the Gaussian-blurred mask at that level. The code multiplies the first image's band by <math><msub><mi>M</mi><mi>k</mi></msub></math>, the second by <math><mn>1</mn><mo>−</mo><msub><mi>M</mi><mi>k</mi></msub></math>, and sums the five blended bands. Those complementary weights preserve contributions from both images while giving coarser bands a wider transition.</p>
+
+        <div class="p2-subsection">
+            <h3>The oraple</h3>
+            <figure class="p2-wide-figure p2-oraple"><div class="image-frame"><img src="media/oraple.jpg" alt="Apple and orange combined using a vertical multiresolution blend" loading="lazy"></div><figcaption>Apple on the left, orange on the right.</figcaption></figure>
+        </div>
+
+        <div class="p2-subsection">
+            <h3>Mountain and wolf</h3>
+            <p>I started this pair with a vertical divide, then softened the mask before making its stack. That widened the transition in the middle without blurring the entire wolf or mountain. The direct cut makes the boundary explicit; in the multiresolution result, the transition is distributed across the frequency bands.</p>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/mountain_wolf_blend_mask.jpg" alt="Vertical mountain and wolf blending mask" loading="lazy"></div><figcaption>Vertical mask.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/mountain_wolf_blend_hard_cut.jpg" alt="Mountain and wolf joined with a hard vertical cut" loading="lazy"></div><figcaption>Direct cut.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/mountain_wolf_blend_result.jpg" alt="Mountain and wolf multiresolution blend" loading="lazy"></div><figcaption>Five-level blend.</figcaption></figure>
+            </div>
+        </div>
+
+        <div class="p2-subsection">
+            <h3>Moon and grim reaper</h3>
+            <p>A straight seam made less sense for a face, so I drew an oval mask around the grim reaper. I also cropped the moon image to a matching aspect ratio before resizing it; otherwise the moon looked squashed.</p>
+            <div class="p2-grid p2-grid-three">
+                <figure><div class="image-frame"><img src="media/moon_grim_blend_mask.jpg" alt="Oval mask used for moon and grim reaper blend" loading="lazy"></div><figcaption>Oval mask.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_blend_hard_cut.jpg" alt="Moon and grim reaper joined with a hard oval cut" loading="lazy"></div><figcaption>Direct cut.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_blend_result.jpg" alt="Moon and grim reaper multiresolution blend" loading="lazy"></div><figcaption>Five-level blend.</figcaption></figure>
+            </div>
+            <p class="p2-note">The two masked images below show which parts came from each source. The level-by-level figure underneath shows how those parts were combined, not just the finished composite.</p>
+            <div class="p2-grid p2-grid-two p2-narrow">
+                <figure><div class="image-frame"><img src="media/moon_grim_blend_first_masked.jpg" alt="Grim reaper kept inside the oval mask" loading="lazy"></div><figcaption>Grim reaper through the oval mask.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/moon_grim_blend_second_masked.jpg" alt="Moon scene kept outside the oval mask" loading="lazy"></div><figcaption>Moon scene outside the oval mask.</figcaption></figure>
+            </div>
+            <figure class="p2-wide-figure p2-reference-figure"><div class="image-frame"><img src="media/moon_grim_blend_process.jpg" alt="Level-by-level masked Laplacian contributions and final moon and grim reaper blend" loading="lazy"></div><figcaption>Selected Laplacian levels and their accumulated contributions.</figcaption></figure>
+        </div>
+    </section>
+
+    <section class="project-section" id="takeaway">
+        <div class="section-heading"><span class="section-number">08</span><h2>What I Learned</h2></div>
+        <p class="section-intro">The blur-then-sharpen selfie made the limits of frequency processing concrete for me. The unsharp mask increases the contrast of high-frequency detail that survives in an image, but it cannot reconstruct detail removed by the earlier blur. The Taj looked crisper as I increased the sharpening amount; the selfie never returned to its original state. Stronger edges and recovered information are not the same thing.</p>
+        <p class="section-intro">That distinction also changed how I understood the blends. The Laplacian stack separates the image into signed frequency bands, but the blend depends just as much on the Gaussian stack of the mask. In my moon and grim reaper example, applying the same hard oval at every level would leave an obvious boundary. Weighting each band with its own smoothed mask lets the broad color transition extend farther than the fine detail. Comparing the direct cut with the final blend made that scale-dependent seam the most useful idea I took from this project.</p>
+    </section>
+</main>
+
+<footer class="site-footer"><span>Vishwas Charan · Fall 2026 UC Berkeley</span></footer>
+</body>
+</html>

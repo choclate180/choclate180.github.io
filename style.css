@@ -12,7 +12,7 @@
     --espresso: #4b3325;
 
     --content-width: 1040px;
-    --text-width: 700px;
+    --text-width: 760px;
     --body-font: "Segoe UI";
     --display-font: Candara, "Segoe UI";
     --rule-gradient: linear-gradient(90deg, var(--accent-soft), var(--border) 68%, transparent);
@@ -701,6 +701,176 @@ img {
     text-transform: uppercase;
 }
 
+/* Project 2 */
+
+.proj2-page .prose-block {
+    max-width: 780px;
+    margin: 30px auto 0;
+}
+
+.proj2-page .p2-code-group {
+    display: grid;
+    gap: 28px;
+    max-width: 820px;
+    margin: 35px auto 0;
+}
+
+.proj2-page .p2-code-example h3 {
+    margin: 0 0 10px;
+    color: var(--espresso);
+    font-size: 1.1rem;
+}
+
+.proj2-page .p2-code-example pre {
+    overflow-x: auto;
+    margin: 0;
+    padding: 20px 23px;
+    border: 1px solid #b99d84;
+    border-radius: var(--radius);
+    background: #e8d7c4;
+    color: var(--text);
+    font-size: 0.83rem;
+    line-height: 1.55;
+    tab-size: 4;
+}
+
+.proj2-page .prose-block h3,
+.proj2-page .p2-subsection h3 {
+    margin: 0 0 9px;
+    font-size: 1.35rem;
+}
+
+.proj2-page .prose-block p,
+.proj2-page .p2-subsection > p {
+    margin-top: 10px;
+    color: var(--muted);
+}
+
+.proj2-page .p2-subsection {
+    max-width: 900px;
+    margin: 46px auto 0;
+    padding-top: 25px;
+    border-top: 1px solid var(--border);
+}
+
+.proj2-page .p2-subsection h4 {
+    margin: 32px 0 5px;
+    color: var(--espresso);
+    font-family: var(--display-font);
+    font-size: 1.13rem;
+    font-weight: 600;
+}
+
+.proj2-page .p2-note {
+    max-width: 780px;
+    margin: 27px auto 0;
+    color: var(--muted);
+}
+
+.proj2-page .p2-math {
+    max-width: 780px;
+    margin: 26px auto 0;
+    overflow-x: auto;
+}
+
+.proj2-page p math,
+.proj2-page figcaption math { font-size: 1em; }
+
+.proj2-page .p2-grid {
+    display: grid;
+    gap: 26px 16px;
+    max-width: 900px;
+    margin: 28px auto 0;
+    align-items: start;
+}
+
+.proj2-page .p2-grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.proj2-page .p2-grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.proj2-page .p2-grid-four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.proj2-page .p2-grid-five { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.proj2-page .p2-narrow { max-width: 660px; }
+
+.proj2-page .p2-grid figure,
+.proj2-page .p2-wide-figure { margin: 0; }
+
+.proj2-page .p2-grid img { width: 100%; height: auto; }
+
+.proj2-page .p2-grid figcaption,
+.proj2-page .p2-wide-figure figcaption {
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+
+.proj2-page .p2-portrait-row .image-frame img {
+    width: 100%;
+    height: auto;
+}
+
+.proj2-page .p2-derek-crop { aspect-ratio: 16 / 15; }
+
+.proj2-page .p2-portrait-row .p2-derek-crop img {
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+}
+
+.proj2-page .p2-box-crop img {
+    transform: scale(1.05);
+    transform-origin: center;
+}
+
+.proj2-page .p2-filter-grid .image-frame {
+    display: grid;
+    place-items: center;
+    width: 130px;
+    height: 130px;
+    margin: auto;
+}
+
+.proj2-page .p2-filter-grid img {
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+.proj2-page .p2-filter-grid figcaption { text-align: center; }
+
+.proj2-page .p2-fft-grid .image-frame { border: 1px solid var(--border); }
+.proj2-page .p2-fft-grid figcaption { font-size: 0.77rem; }
+
+.proj2-page .p2-stack-group {
+    display: grid;
+    gap: 27px;
+    max-width: 900px;
+    margin: 34px auto 0;
+}
+
+.proj2-page .p2-stack-levels {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin-bottom: 7px;
+    color: var(--accent);
+    font-size: 0.74rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-align: center;
+}
+
+.proj2-page .p2-wide-figure {
+    max-width: 900px;
+    margin: 32px auto 0;
+}
+
+.proj2-page .p2-wide-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.proj2-page .p2-reference-figure { max-width: 740px; }
+.proj2-page .p2-oraple { max-width: 620px; }
+
 /* Homepage project cards */
 
 .projects {
@@ -843,6 +1013,24 @@ img {
     .site-footer {
         padding: 20px 20px 35px;
     }
+
+    .proj2-page .p2-grid-three,
+    .proj2-page .p2-grid-four,
+    .proj2-page .p2-grid-five {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .proj2-page .p2-fft-grid { gap: 20px 10px; }
+}
+
+@media (max-width: 460px) {
+    .proj2-page .p2-grid-two,
+    .proj2-page .p2-grid-three,
+    .proj2-page .p2-grid-four {
+        grid-template-columns: 1fr;
+    }
+
+    .proj2-page .p2-grid-five { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Printing for Gradescope PDF */
@@ -874,6 +1062,10 @@ img {
     .table-wrap,
     .offset-table tr {
         break-inside: avoid;
+    }
+
+    .proj2-page .p2-reference-figure {
+        max-width: 600px;
     }
 }
 
