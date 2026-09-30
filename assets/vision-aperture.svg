@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" fill="none" aria-hidden="true">
+  <defs>
+    <pattern id="grid" width="18" height="18" patternUnits="userSpaceOnUse">
+      <path d="M18 0H0V18" stroke="#9a8069" stroke-opacity=".16" stroke-width="1"/>
+    </pattern>
+    <clipPath id="plate"><rect x="12" y="12" width="196" height="196" rx="6"/></clipPath>
+  </defs>
+  <rect x="12" y="12" width="196" height="196" rx="6" fill="#e8d9c8"/>
+  <rect x="12" y="12" width="196" height="196" rx="6" fill="url(#grid)"/>
+  <g clip-path="url(#plate)">
+    <circle cx="93" cy="104" r="51" fill="#b86b53" fill-opacity=".16" stroke="#a05a43" stroke-width="1.5"/>
+    <circle cx="121" cy="104" r="51" fill="#7b937f" fill-opacity=".16" stroke="#69806d" stroke-width="1.5"/>
+    <circle cx="107" cy="125" r="51" fill="#7288a1" fill-opacity=".16" stroke="#607893" stroke-width="1.5"/>
+    <circle cx="107" cy="111" r="38" stroke="#4b3325" stroke-opacity=".55" stroke-width="1" stroke-dasharray="3 5"/>
+    <path d="M107 60v102M56 111h102" stroke="#4b3325" stroke-opacity=".42" stroke-width="1"/>
+    <circle cx="107" cy="111" r="3" fill="#4b3325"/>
+  </g>
+  <path d="M26 45V26h19M175 26h19v19M194 175v19h-19M45 194H26v-19" stroke="#4b3325" stroke-width="2"/>
+  <path d="M72 17v8M110 17v8M148 17v8M72 195v8M110 195v8M148 195v8M17 72h8M17 110h8M17 148h8M195 72h8M195 110h8M195 148h8" stroke="#9a8069" stroke-width="1.2"/>
+  <rect x="34" y="164" width="8" height="8" fill="#b86b53"/>
+  <rect x="46" y="164" width="8" height="8" fill="#7b937f"/>
+  <rect x="58" y="164" width="8" height="8" fill="#7288a1"/>
+</svg>

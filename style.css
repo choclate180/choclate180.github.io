@@ -316,9 +316,21 @@ figcaption strong { color: var(--text); font-weight: 600; }
 /* Dividers */
 
 .divider {
+    position: relative;
     height: 1px;
     background: var(--rule-gradient);
     margin: 48px 0;
+}
+
+.divider::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    right: 0;
+    width: 136px;
+    height: 9px;
+    background: repeating-linear-gradient(90deg, transparent 0 10px, var(--caramel) 10px 11px);
+    opacity: 0.55;
 }
 
 .project-hero + .divider {
@@ -934,6 +946,112 @@ img {
     font-size: 0.93rem;
 }
 
+/* Imaging details shared by the portfolio */
+
+main > header:first-child {
+    position: relative;
+}
+
+main > header:first-child::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 10px;
+    width: 188px;
+    height: 188px;
+    background: url("/assets/vision-aperture.svg") center / contain no-repeat;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+main > header:first-child h1 {
+    max-width: calc(100% - 205px);
+}
+
+.project-page > .project-hero::after {
+    top: 8px;
+    right: 0;
+    width: 235px;
+    height: 158px;
+}
+
+.project-page > .project-hero h1 {
+    max-width: calc(100% - 250px);
+}
+
+.proj0-page > .project-hero::after { background-image: url("/assets/card-perspective.svg"); }
+.proj1-page > .project-hero::after { background-image: url("/assets/card-channels.svg"); }
+.proj2-page > .project-hero::after { background-image: url("/assets/card-frequencies.svg"); }
+
+.field-record {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 860px;
+    margin: 34px 0 0;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.field-record > div {
+    min-width: 0;
+    padding: 0 18px;
+    border-left: 1px solid var(--border);
+}
+
+.field-record > div:first-child {
+    padding-left: 0;
+    border-left: 0;
+}
+
+.field-record dt {
+    margin-bottom: 3px;
+    color: var(--accent);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+}
+
+.field-record dd {
+    margin: 0;
+    color: var(--espresso);
+    font-family: var(--display-font);
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.field-record + .project-jump-links { margin-top: 24px; }
+
+.project-card {
+    padding-right: 155px;
+}
+
+.project-card::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 17px;
+    width: 128px;
+    height: 92px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.9;
+    transform: translateY(-50%);
+    transition: transform 0.24s ease;
+    pointer-events: none;
+}
+
+.project-card:nth-child(1)::after { background-image: url("/assets/card-perspective.svg"); }
+.project-card:nth-child(2)::after { background-image: url("/assets/card-channels.svg"); }
+.project-card:nth-child(3)::after { background-image: url("/assets/card-frequencies.svg"); }
+
+.project-card:hover::after,
+.project-card:focus-visible::after {
+    transform: translateY(-50%) scale(1.045);
+}
+
 /* Footer */
 
 .site-footer {
@@ -949,6 +1067,11 @@ img {
 }
 
 /* Mobile */
+
+@media (max-width: 850px) {
+    main > header:first-child::after { display: none; }
+    main > header:first-child h1 { max-width: 900px; }
+}
 
 @media (max-width: 700px) {
     nav {
@@ -1021,6 +1144,26 @@ img {
     }
 
     .proj2-page .p2-fft-grid { gap: 20px 10px; }
+
+    .field-record {
+        grid-template-columns: 1fr;
+        padding: 0;
+    }
+
+    .field-record > div,
+    .field-record > div:first-child {
+        display: grid;
+        grid-template-columns: 100px minmax(0, 1fr);
+        gap: 14px;
+        padding: 10px 0;
+        border-left: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .field-record > div:last-child { border-bottom: 0; }
+
+    .field-record dt { margin-bottom: 0; }
+
 }
 
 @media (max-width: 460px) {
@@ -1031,6 +1174,14 @@ img {
     }
 
     .proj2-page .p2-grid-five { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .project-card { padding-right: 26px; }
+    .project-card::after { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .project-card::after { transition: none; }
 }
 
 /* Printing for Gradescope PDF */
@@ -1067,6 +1218,7 @@ img {
     .proj2-page .p2-reference-figure {
         max-width: 600px;
     }
+
 }
 
 
