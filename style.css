@@ -982,6 +982,7 @@ main > header:first-child h1 {
 .proj0-page > .project-hero::after { background-image: url("/assets/card-perspective.svg"); }
 .proj1-page > .project-hero::after { background-image: url("/assets/card-channels.svg"); }
 .proj2-page > .project-hero::after { background-image: url("/assets/card-frequencies.svg"); }
+.proj3-page > .project-hero::after { background-image: url("/assets/card-flow.svg"); }
 
 .field-record {
     display: grid;
@@ -1046,6 +1047,7 @@ main > header:first-child h1 {
 .project-card:nth-child(1)::after { background-image: url("/assets/card-perspective.svg"); }
 .project-card:nth-child(2)::after { background-image: url("/assets/card-channels.svg"); }
 .project-card:nth-child(3)::after { background-image: url("/assets/card-frequencies.svg"); }
+.project-card:nth-child(4)::after { background-image: url("/assets/card-flow.svg"); }
 
 .project-card:hover::after,
 .project-card:focus-visible::after {
