@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="overlap" x1="79" y1="42" x2="160" y2="122" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#c58b55" stop-opacity=".2"/>
+      <stop offset="1" stop-color="#b66d4d" stop-opacity=".06"/>
+    </linearGradient>
+    <clipPath id="leftFrame"><path d="M20 27L145 43L151 127L12 136Z"/></clipPath>
+    <clipPath id="rightFrame"><path d="M93 37H221V126H93Z"/></clipPath>
+  </defs>
+  <path d="M9 14H231V146H9Z" stroke="#a98e75" stroke-opacity=".35"/>
+  <path d="M9 26V14H21M219 14H231V26M9 134V146H21M219 146H231V134" stroke="#4b3325" stroke-width="1.8"/>
+  <path d="M20 27L145 43L151 127L12 136Z" fill="#c58b55" fill-opacity=".06" stroke="#b66d4d" stroke-width="1.5"/>
+  <g clip-path="url(#leftFrame)" stroke="#b66d4d" stroke-opacity=".22" stroke-width=".8">
+    <path d="M51 31L48 134M83 35L85 131M114 39L120 129M17 54L147 65M15 82L148 86M13 109L150 107"/>
+  </g>
+  <path d="M93 43L145 43L151 126H93Z" fill="url(#overlap)"/>
+  <path d="M93 37H221V126H93Z" stroke="#4b3325" stroke-width="1.5"/>
+  <g clip-path="url(#rightFrame)" stroke="#4b3325" stroke-opacity=".16" stroke-width=".8">
+    <path d="M125 37V126M157 37V126M189 37V126M93 59H221M93 82H221M93 104H221"/>
+  </g>
+  <g clip-path="url(#leftFrame)">
+    <path d="M13 113L37 96L52 103L77 75L94 90L111 73L149 100" stroke="#b66d4d" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M13 121L63 114L94 118L151 110" stroke="#b66d4d" stroke-opacity=".4"/>
+  </g>
+  <g clip-path="url(#rightFrame)">
+    <path d="M93 92L111 75L132 91L157 63L182 86L196 78L221 97" stroke="#4b3325" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M93 118L146 113L177 117L221 110" stroke="#4b3325" stroke-opacity=".4"/>
+  </g>
+  <path d="M110 44C119 58 121 70 119 84C117 99 125 111 128 125" stroke="#8a5b3d" stroke-opacity=".5" stroke-dasharray="2 4"/>
+  <g stroke="#b66d4d" stroke-width="1.3">
+    <circle cx="77" cy="75" r="3.3" fill="#f1e9df"/>
+    <circle cx="111" cy="73" r="3.3" fill="#f1e9df"/>
+    <path d="M80 74L108 75" stroke-opacity=".65" stroke-dasharray="2 3"/>
+  </g>
+  <g stroke="#4b3325" stroke-width="1.3">
+    <circle cx="157" cy="63" r="3.3" fill="#f1e9df"/>
+    <path d="M153 64L115 73" stroke-opacity=".45" stroke-dasharray="2 3"/>
+  </g>
+  <path d="M19 20H25M22 17V23M215 137H221M218 134V140" stroke="#8a5b3d" stroke-opacity=".7"/>
+</svg>

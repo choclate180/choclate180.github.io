@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CS 180 Project 4: manual homographies, image rectification, and three mosaics with two-band Laplacian blending.">
+    <title>Project 4 | Image Warping &amp; Mosaicing</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<nav aria-label="Primary navigation">
+    <a class="nav-title" href="../">CS 180</a>
+    <div class="nav-links"><a href="../">Projects</a></div>
+</nav>
+
+<main class="project-page proj4-page">
+    <header class="project-hero">
+        <span class="project-kicker">Project 04 · Fall 2026</span>
+        <h1>Image Warping<br>&amp; Mosaicing</h1>
+        <p class="subtitle">A few overlapping photos, hand-picked matches, and a wider view.</p>
+        <dl class="field-record" aria-label="Project details">
+            <div><dt>Input</dt><dd>My own photographs</dd></div>
+            <div><dt>Geometry</dt><dd>Projective homographies</dd></div>
+            <div><dt>Blending</dt><dd>Two-band Laplacian stack</dd></div>
+        </dl>
+        <div class="p4-contents" role="navigation" aria-label="Project contents">
+            <div class="p4-nav-row">
+                <a class="p4-part-link" href="#part-a">Part A</a>
+                <div class="project-jump-links" aria-label="Part A sections">
+                    <a href="#a-photos">Source photos</a>
+                    <a href="#a-homographies">Homographies</a>
+                    <a href="#a-rectification">Rectification</a>
+                    <a href="#a-mosaics">Mosaics &amp; blending</a>
+                </div>
+            </div>
+            <div class="p4-nav-row p4-nav-empty">
+                <a class="p4-part-link" href="#part-b">Part B</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="divider"></div>
+
+    <section class="p4-part-heading" id="part-a" aria-labelledby="part-a-title">
+        <span class="project-kicker">Part A</span>
+        <h2 id="part-a-title">Image warping &amp; mosaicing</h2>
+        <p>I stitched two horizontal scenes and a four-shot vertical panorama using hand-picked matches and homographies.</p>
+    </section>
+
+    <section class="project-section" id="a-photos">
+        <div class="section-heading"><span class="section-number">A.1</span><h2>Shooting the photos</h2></div>
+        <p class="section-intro">I stayed in the same spot and tilted the camera left/right or up/down. That kept the camera center roughly fixed, so I could align the overlapping views with homographies.</p>
+
+        <div class="p4-subsection">
+            <h3>01 · Rooftops</h3>
+            <div class="p4-grid p4-pair p4-sources">
+                <figure><div class="image-frame"><img src="media/first1.jpeg" width="640" height="360" alt="First rooftop view, showing the apartment building and green-roofed house" loading="lazy"></div><figcaption>First view.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/first2.jpeg" width="640" height="360" alt="Second overlapping rooftop view, rotated toward the right" loading="lazy"></div><figcaption>Second view, used as the reference.</figcaption></figure>
+            </div>
+        </div>
+        <div class="p4-subsection">
+            <h3>02 · Along the sidewalk</h3>
+            <div class="p4-grid p4-pair p4-sources">
+                <figure><div class="image-frame"><img src="media/second1.jpeg" width="640" height="360" alt="First sidewalk view with apartment stairs, evergreen trees, and a wooden fence" loading="lazy"></div><figcaption>First view.</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/second2.jpeg" width="640" height="360" alt="Second sidewalk view with the same trees, wooden gate, and street" loading="lazy"></div><figcaption>Second view, used as the reference.</figcaption></figure>
+            </div>
+        </div>
+        <div class="p4-subsection">
+            <h3>03 · From pavement to treetop</h3>
+            <p>Four shots, tilting upward. I matched neighboring photos.</p>
+            <div class="p4-grid p4-four p4-vertical-sources">
+                <figure><div class="image-frame"><img src="media/vert1.jpeg" width="360" height="640" alt="Vertical photo one, emphasizing the sidewalk and base of the tree" loading="lazy"></div><figcaption>1 · Pavement</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/vert2.jpeg" width="360" height="640" alt="Vertical photo two, the reference view of the tree and sidewalk" loading="lazy"></div><figcaption>2 · Reference</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/vert3.jpeg" width="360" height="640" alt="Vertical photo three, showing more of the tree branches above the sidewalk" loading="lazy"></div><figcaption>3 · Looking up</figcaption></figure>
+                <figure><div class="image-frame"><img src="media/vert4.jpeg" width="360" height="640" alt="Vertical photo four, looking into the canopy" loading="lazy"></div><figcaption>4 · Canopy</figcaption></figure>
+            </div>
+        </div>
+    </section>
+
+    <section class="project-section" id="a-homographies">
+        <div class="section-heading"><span class="section-number">A.2</span><h2>Recovering homographies</h2></div>
+        <p class="section-intro">I clicked eight matching points per pair with <code>plt.ginput</code>, keeping the same order in both photos. All point coordinates used <math><mo>(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo>)</mo></math>.</p>
+        <div class="p4-copy">
+            <p>I fixed the bottom-right entry to 1, leaving eight unknowns. After applying the matrix, I divided by the third coordinate:</p>
+        </div>
+        <div class="formula p4-equation">
+            <math display="block" aria-label="The homography matrix has entries a through h, with bottom-right entry one">
+                <mi>H</mi><mo>=</mo><mrow><mo stretchy="true">[</mo><mtable columnspacing="1em"><mtr><mtd><mi>a</mi></mtd><mtd><mi>b</mi></mtd><mtd><mi>c</mi></mtd></mtr><mtr><mtd><mi>d</mi></mtd><mtd><mi>e</mi></mtd><mtd><mi>f</mi></mtd></mtr><mtr><mtd><mi>g</mi></mtd><mtd><mi>h</mi></mtd><mtd><mn>1</mn></mtd></mtr></mtable><mo stretchy="true">]</mo></mrow><mo>,</mo><mspace width="1em"/>
+                <mi>u</mi><mo>=</mo><mfrac><mrow><mi>a</mi><mi>x</mi><mo>+</mo><mi>b</mi><mi>y</mi><mo>+</mo><mi>c</mi></mrow><mrow><mi>g</mi><mi>x</mi><mo>+</mo><mi>h</mi><mi>y</mi><mo>+</mo><mn>1</mn></mrow></mfrac><mo>,</mo><mspace width=".6em"/>
+                <mi>v</mi><mo>=</mo><mfrac><mrow><mi>d</mi><mi>x</mi><mo>+</mo><mi>e</mi><mi>y</mi><mo>+</mo><mi>f</mi></mrow><mrow><mi>g</mi><mi>x</mi><mo>+</mo><mi>h</mi><mi>y</mi><mo>+</mo><mn>1</mn></mrow></mfrac>
+            </math>
+        </div>
+        <p class="p4-copy">Each match gave two equations. My <code>computeH</code> solved the resulting 16 × 8 system with <code>np.linalg.lstsq</code>:</p>
+        <div class="formula p4-equation p4-system">
+            <math display="block" aria-label="Two rows of A for each correspondence, multiplied by the eight unknowns, equal u and v">
+                <mrow><mo stretchy="true">[</mo><mtable columnspacing=".6em"><mtr><mtd><mi>x</mi></mtd><mtd><mi>y</mi></mtd><mtd><mn>1</mn></mtd><mtd><mn>0</mn></mtd><mtd><mn>0</mn></mtd><mtd><mn>0</mn></mtd><mtd><mo>−</mo><mi>u</mi><mi>x</mi></mtd><mtd><mo>−</mo><mi>u</mi><mi>y</mi></mtd></mtr><mtr><mtd><mn>0</mn></mtd><mtd><mn>0</mn></mtd><mtd><mn>0</mn></mtd><mtd><mi>x</mi></mtd><mtd><mi>y</mi></mtd><mtd><mn>1</mn></mtd><mtd><mo>−</mo><mi>v</mi><mi>x</mi></mtd><mtd><mo>−</mo><mi>v</mi><mi>y</mi></mtd></mtr></mtable><mo stretchy="true">]</mo></mrow>
+                <msup><mrow><mo>[</mo><mi>a</mi><mspace width=".3em"/><mi>b</mi><mspace width=".3em"/><mi>c</mi><mspace width=".3em"/><mi>d</mi><mspace width=".3em"/><mi>e</mi><mspace width=".3em"/><mi>f</mi><mspace width=".3em"/><mi>g</mi><mspace width=".3em"/><mi>h</mi><mo>]</mo></mrow><mi mathvariant="normal">T</mi></msup>
+                <mo>=</mo><mrow><mo stretchy="true">[</mo><mtable><mtr><mtd><mi>u</mi></mtd></mtr><mtr><mtd><mi>v</mi></mtd></mtr></mtable><mo stretchy="true">]</mo></mrow>
+            </math>
+        </div>
+        <div class="p4-grid p4-pair p4-match-grid">
+            <figure><div class="p4-plot-crop p4-landscape-matches"><img class="p4-plot" src="media/first_matches.png" alt="Eight numbered rooftop correspondences, with matching numbers in both photos" loading="lazy"></div><figcaption>Rooftops · matching numbers mark the same feature.</figcaption></figure>
+            <figure><div class="p4-plot-crop p4-landscape-matches"><img class="p4-plot" src="media/second_matches.png" alt="Eight numbered correspondences across the two sidewalk photos" loading="lazy"></div><figcaption>Sidewalk · eight matches.</figcaption></figure>
+        </div>
+        <div class="p4-grid p4-three p4-match-grid">
+            <figure><div class="p4-plot-crop p4-portrait-matches"><img class="p4-plot" src="media/vert12_matches.png" alt="Eight corresponding points between vertical photos one and two" loading="lazy"></div><figcaption>Vertical 1 → 2</figcaption></figure>
+            <figure><div class="p4-plot-crop p4-portrait-matches"><img class="p4-plot" src="media/vert23_matches.png" alt="Eight corresponding points between vertical photos two and three" loading="lazy"></div><figcaption>Vertical 2 → 3</figcaption></figure>
+            <figure><div class="p4-plot-crop p4-portrait-matches"><img class="p4-plot" src="media/vert34_matches.png" alt="Eight corresponding points between vertical photos three and four" loading="lazy"></div><figcaption>Vertical 3 → 4</figcaption></figure>
+        </div>
+
+        <div class="p4-subsection">
+            <h3>Recovered matrices</h3>
+            <p>Source → destination, rounded. Errors are the mean distance from mapped points to clicked matches, in pixels.</p>
+            <div class="p4-matrices">
+                <article class="p4-matrix"><h4>Rooftops · 1 → 2</h4><p>Mean error: 1.39 px</p><math display="block" aria-label="Rooftop homography"><mrow><mo stretchy="true">[</mo><mtable columnspacing=".7em"><mtr><mtd><mn>1.476914</mn></mtd><mtd><mn>−0.033473</mn></mtd><mtd><mn>−292.861644</mn></mtd></mtr><mtr><mtd><mn>0.145248</mn></mtd><mtd><mn>1.142077</mn></mtd><mtd><mn>−55.623601</mn></mtd></mtr><mtr><mtd><mn>0.00086456</mn></mtd><mtd><mn>−0.00055045</mn></mtd><mtd><mn>1</mn></mtd></mtr></mtable><mo stretchy="true">]</mo></mrow></math></article>
+                <article class="p4-matrix"><h4>Sidewalk · 1 → 2</h4><p>Mean error: 1.26 px</p><math display="block" aria-label="Sidewalk homography"><mrow><mo stretchy="true">[</mo><mtable columnspacing=".7em"><mtr><mtd><mn>1.408610</mn></mtd><mtd><mn>−0.071335</mn></mtd><mtd><mn>−234.537864</mn></mtd></mtr><mtr><mtd><mn>0.159232</mn></mtd><mtd><mn>1.228898</mn></mtd><mtd><mn>−56.052475</mn></mtd></mtr><mtr><mtd><mn>0.00063251</mn></mtd><mtd><mn>−0.00005207</mn></mtd><mtd><mn>1</mn></mtd></mtr></mtable><mo stretchy="true">]</mo></mrow></math></article>
+                <article class="p4-matrix"><h4>Vertical · 1 → 2</h4><p>Mean error: 2.00 px</p><math display="block" aria-label="Vertical one to two homography"><mrow><mo stretchy="true">[</mo><mtable columnspacing=".7em"><mtr><mtd><mn>0.845639</mn></mtd><mtd><mn>−0.045838</mn></mtd><mtd><mn>15.337720</mn></mtd></mtr><mtr><mtd><mn>−0.103199</mn></mtd><mtd><mn>0.818004</mn></mtd><mtd><mn>116.830899</mn></mtd></mtr><mtr><mtd><mn>−0.00021137</mn></mtd><mtd><mn>−0.00028440</mn></mtd><mtd><mn>1</mn></mtd></mtr></mtable><mo stretchy="true">]</mo></mrow></math></article>
+                <article class="p4-matrix"><h4>Vertical · 2 → 3</h4><p>Mean error: 2.15 px</p><math display="block" aria-label="Vertical two to three homography"><mrow><mo stretchy="true">[</mo><mtable columnspacing=".7em"><mtr><mtd><mn>0.677543</mn></mtd><mtd><mn>−0.099962</mn></mtd><mtd><mn>41.190165</mn></mtd></mtr><mtr><mtd><mn>−0.111096</mn></mtd><mtd><mn>0.608680</mn></mtd><mtd><mn>127.315317</mn></mtd></mtr><mtr><mtd><mn>−0.00045587</mn></mtd><mtd><mn>−0.00059182</mn></mtd><mtd><mn>1</mn></mtd></mtr></mtable><mo stretchy="true">]</mo></mrow></math></article>
+                <article class="p4-matrix"><h4>Vertical · 3 → 4</h4><p>Mean error: 1.68 px</p><math display="block" aria-label="Vertical three to four homography"><mrow><mo stretchy="true">[</mo><mtable columnspacing=".7em"><mtr><mtd><mn>0.885267</mn></mtd><mtd><mn>−0.072849</mn></mtd><mtd><mn>17.446501</mn></mtd></mtr><mtr><mtd><mn>−0.033081</mn></mtd><mtd><mn>0.723107</mn></mtd><mtd><mn>134.016007</mn></mtd></mtr><mtr><mtd><mn>−0.00002281</mn></mtd><mtd><mn>−0.00041307</mn></mtd><mtd><mn>1</mn></mtd></mtr></mtable><mo stretchy="true">]</mo></mrow></math></article>
+            </div>
+        </div>
+    </section>
+
+    <section class="project-section" id="a-rectification">
+        <div class="section-heading"><span class="section-number">A.3</span><h2>Warping &amp; rectification</h2></div>
+        <p class="section-intro">I tested the warp on two window photos first, mapping their four inside corners to a rectangle.</p>
+        <div class="p4-copy">
+            <p>I used the transformed corners to size the canvas, then worked backward through the inverse homography to sample each pixel. That avoided holes. I kept offsets for negative coordinates and a mask for valid pixels.</p>
+        </div>
+        <div class="p4-methods">
+            <article><h3>Nearest neighbor</h3><p>I rounded to the closest source pixel. Faster, but the window edges looked a bit jagged.</p></article>
+            <article><h3>Bilinear</h3><p>I mixed the four neighboring pixels using their fractional distances. The edges looked smoother, though slightly softer.</p></article>
+        </div>
+
+        <div class="p4-subsection">
+            <h3>Window 1</h3>
+            <figure class="p4-figure p4-original"><div class="image-frame p4-window-crop p4-window1-source"><img src="media/rect1.jpeg" width="640" height="360" alt="Window-focused crop of the original first photo, retaining all four corners" loading="lazy"></div><figcaption>Original · window crop.</figcaption></figure>
+            <div class="p4-grid p4-pair p4-window-comparison">
+                <figure><div class="image-frame p4-window-crop p4-window1-result"><img src="media/rect1_nn.jpg" alt="Matching enlarged crop of the first window rectified with nearest-neighbor sampling" loading="lazy"></div><figcaption>Nearest neighbor.</figcaption></figure>
+                <figure><div class="image-frame p4-window-crop p4-window1-result"><img src="media/rect1_bil.jpg" alt="Matching enlarged crop of the first window rectified with bilinear sampling" loading="lazy"></div><figcaption>Bilinear · same crop.</figcaption></figure>
+            </div>
+        </div>
+        <div class="p4-subsection">
+            <h3>Window 2</h3>
+            <figure class="p4-figure p4-original"><div class="image-frame p4-window-crop p4-window2-source"><img src="media/rect2.jpeg" width="640" height="360" alt="Window-focused crop of the original second photo, retaining its angled frame" loading="lazy"></div><figcaption>Original · window crop, at a stronger angle.</figcaption></figure>
+            <div class="p4-grid p4-pair p4-window-comparison">
+                <figure><div class="image-frame p4-window-crop p4-window2-result"><img src="media/rect2_nn.jpg" alt="Matching enlarged crop of the second window rectified with nearest-neighbor sampling" loading="lazy"></div><figcaption>Nearest neighbor.</figcaption></figure>
+                <figure><div class="image-frame p4-window-crop p4-window2-result"><img src="media/rect2_bil.jpg" alt="Matching enlarged crop of the second window rectified with bilinear sampling" loading="lazy"></div><figcaption>Bilinear · same crop.</figcaption></figure>
+            </div>
+        </div>
+        <p class="p4-copy">Both openings straightened out. I used destination corners (0, 0), (300, 0), (300, 260), and (0, 260), so the proportions were chosen rather than measured. Only the window plane was rectified. In both window images, nearest neighbor clearly shows some jagged edges in the window frame, as well as in the more high frequency areas.</p>
+        <div class="p4-timing-wrap">
+            <table class="p4-timing">
+                <caption>Warping time · seconds</caption>
+                <thead><tr><th scope="col">Image</th><th scope="col">Nearest neighbor</th><th scope="col">Bilinear</th></tr></thead>
+                <tbody><tr><th scope="row">Window 1</th><td>1.183</td><td>1.554</td></tr><tr><th scope="row">Window 2</th><td>2.106</td><td>2.738</td></tr></tbody>
+            </table>
+        </div>
+        <p class="p4-copy">Single-run timings, excluding saving and display. Bilinear took longer.</p>
+    </section>
+
+    <section class="project-section" id="a-mosaics">
+        <div class="section-heading"><span class="section-number">A.4</span><h2>Blending the wider view</h2></div>
+        <p class="section-intro">I warped the photos onto a shared canvas with bilinear interpolation, then reused the two-band idea from Project 2 to soften the seams.</p>
+        <div class="p4-copy">
+            <h3>Two-band blending</h3>
+            <p>I blurred each image with <math><mi>σ</mi><mo>=</mo><mn>8</mn></math> for the low band and subtracted that blur for the detail band. In the overlap, I chose pixels farther from their image boundary for a sharp mask, then blurred that mask for the low-band transition. Same-sized bands, no downsampling.</p>
+        </div>
+        <div class="formula p4-equation"><math display="block" aria-label="The low band is Gaussian blur, and the detail band is the original minus that blur"><msub><mi>L</mi><mi>i</mi></msub><mo>=</mo><msub><mi>G</mi><mi>σ</mi></msub><mo>∗</mo><msub><mi>I</mi><mi>i</mi></msub><mo>,</mo><mspace width="1em"/><msub><mi>D</mi><mi>i</mi></msub><mo>=</mo><msub><mi>I</mi><mi>i</mi></msub><mo>−</mo><msub><mi>L</mi><mi>i</mi></msub></math></div>
+        <div class="formula p4-equation"><math display="block" aria-label="In the overlap, blend detail using M and the low bands using blurred mask W"><mi>C</mi><mo>=</mo><mi>M</mi><msub><mi>D</mi><mn>1</mn></msub><mo>+</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>M</mi><mo>)</mo><msub><mi>D</mi><mn>2</mn></msub><mo>+</mo><mi>W</mi><msub><mi>L</mi><mn>1</mn></msub><mo>+</mo><mo>(</mo><mn>1</mn><mo>−</mo><mi>W</mi><mo>)</mo><msub><mi>L</mi><mn>2</mn></msub></math></div>
+        <p class="p4-copy"><math><mi>M</mi></math> was the sharp mask; <math><mi>W</mi></math> was its Gaussian blur. I filled missing regions from the other photo before blurring and copied singly covered pixels unchanged. Only the final result was clipped.</p>
+
+        <div class="p4-subsection">
+            <h3>01 · Rooftops</h3>
+            <figure class="p4-figure p4-panorama"><div class="image-frame"><img src="media/first_mosaic.jpg" alt="Two-photo rooftop mosaic, showing a wider view of the apartment building, house, and neighborhood" loading="lazy"></div><figcaption>The rooflines joined up fairly well! Black wedges are empty canvas after warping.</figcaption></figure>
+        </div>
+        <div class="p4-subsection">
+            <h3>02 · Along the sidewalk</h3>
+            <figure class="p4-figure p4-panorama"><div class="image-frame"><img src="media/second_mosaic.jpg" alt="Two-photo sidewalk mosaic spanning apartment stairs, evergreen trees, a gate, and the street" loading="lazy"></div><figcaption>The wall, gate, and sidewalk lined up reasonably well.</figcaption></figure>
+        </div>
+        <div class="p4-subsection">
+            <h3>03 · All four vertical shots</h3>
+            <p>I used photo 2 as the reference. Photo 1 mapped straight into it; photo 3 used the inverse of 2 → 3, and photo 4 went through 4 → 3 → 2. I warped each original once, then blended in 1, 3, and 4 while updating the validity mask.</p>
+            <div class="formula p4-equation p4-chain"><math display="block" aria-label="The fourth photo maps into photo two using inverse H two-three times inverse H three-four"><msub><mi>H</mi><mrow><mn>4</mn><mo>→</mo><mn>2</mn></mrow></msub><mo>=</mo><msubsup><mi>H</mi><mrow><mn>2</mn><mo>→</mo><mn>3</mn></mrow><mn>−1</mn></msubsup><msubsup><mi>H</mi><mrow><mn>3</mn><mo>→</mo><mn>4</mn></mrow><mn>−1</mn></msubsup></math></div>
+            <div class="p4-vertical-layout">
+                <figure class="p4-figure p4-vertical-result"><div class="image-frame"><img src="media/vertical_mosaic.jpg" alt="Four-photo vertical panorama extending from the sidewalk to the tree canopy, with stretching toward the top" loading="lazy"></div><figcaption>All four photos, with the full warped boundary kept.</figcaption></figure>
+                <div class="p4-vertical-copy"><h4>The treetop stretched</h4><p>The sidewalk and canopy joined, but the top became noticeably stretched. Projecting this tall view onto one plane likely contributed, along with error from chaining homographies.</p><p>The neighboring fits averaged 1.7–2.1 pixels of error. That didn't guarantee a distortion-free panorama. A cylindrical or spherical projection would be worth trying; blending alone couldn't fix the geometry.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="p4-part-heading p4-part-b" id="part-b" aria-labelledby="part-b-title">
+        <span class="project-kicker">Part B</span>
+        <h2 id="part-b-title">Part B</h2>
+        <!-- Part B content will be added here. -->
+    </section>
+</main>
+
+<footer class="site-footer"><span>Vishwas Charan · Fall 2026 UC Berkeley</span></footer>
+</body>
+</html>
